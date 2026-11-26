@@ -1,12 +1,11 @@
-# 依赖（Python 3.12）
-# 注意：本机安装的 torch 是 CPU 版；跑 SASRec 需要换 CUDA 版：
-#   pip install torch --index-url https://download.pytorch.org/whl/cu124
-numpy>=1.26,<2.0
+# 云端部署所需（不含 torch，内存更省）
+# 没有 torch 时 SASRec 会自动禁用，其余四个策略与全部图表照常工作。
+# 本地想跑 SASRec：pip install torch --index-url https://download.pytorch.org/whl/cu126
+
+numpy>=1.26
 pandas>=2.0
 scipy>=1.11
 scikit-learn>=1.3
-torch>=2.0
-tqdm>=4.66
 streamlit>=1.40
-faiss-cpu>=1.8
-sentence-transformers>=3.0
+altair>=5.0
+pyarrow>=14.0

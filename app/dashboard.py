@@ -335,13 +335,21 @@ def model_table() -> pd.DataFrame:
 
 
 # ---------------------------------------------------------------- 用户视角
+def available_strats(b) -> list[str]:
+    """当前环境实际可用的策略（云端没装 torch 时就没有 SASRec）。"""
+    return [s for s in STRATS if s in b.models]
+
+
 def page_user(b) -> None:
     from src.artifacts import explain
 
+    strats = available_strats(b)
     idx2user = {v: k for k, v in b.split.user2idx.items()}
     if "uid" not in st.session_state:
         st.session_state.uid = _find_demo_user(b)
-    st.session_state.setdefault("strat", "SASRec")
+    st.session_state.setdefault("strat", strats[0])
+    if st.session_state.strat not in strats:
+        st.session_state.strat = strats[0]
     st.session_state.setdefault("topk", 10)
 
     u = int(st.session_state.uid)
@@ -371,8 +379,8 @@ def page_user(b) -> None:
 
         if not compare:
             strat = st.segmented_control(
-                "策略", STRATS, key="strat", label_visibility="collapsed",
-            ) or "SASRec"
+                "策略", strats, key="strat", label_visibility="collapsed",
+            ) or strats[0]
             st.slider("推荐条数", 5, 20, step=5, key="topk")
 
             s = scores[strat]
@@ -390,7 +398,7 @@ def page_user(b) -> None:
 
             html = []
             for rank, item in enumerate(top, 1):
-                cons = [(n, rank_of(scores[n], int(item))) for n in STRATS if n != strat and n in scores]
+                cons = [(n, rank_of(scores[n], int(item))) for n in strats if n != strat and n in scores]
                 html.append(
                     card(rank, int(item), b, explain(b, strat, u, int(item)), int(item) == gt, cons)
                 )
@@ -398,8 +406,9 @@ def page_user(b) -> None:
         else:
             k = 5
             gt = b.gt.get(u)
+            pair = [s for s in ("SASRec", "ItemCF") if s in strats] or strats[:2]
             c1, c2 = st.columns(2, gap="medium")
-            for col, strat in zip((c1, c2), ("SASRec", "ItemCF")):
+            for col, strat in zip((c1, c2), pair):
                 with col:
                     top = top_items(scores[strat], k)
                     hit = int((top == gt).sum())
@@ -425,14 +434,16 @@ def page_user(b) -> None:
 
 
 def _find_demo_user(b, exclude: int | None = None) -> int:
-    """找一个 SASRec top-3 能命中的用户，让首屏有东西可看。"""
+    """找一个首屏就有命中的用户，让演示一开始有东西可看。"""
     from src.artifacts import recommend
 
+    strats = available_strats(b)
     for u in list(b.gt.keys())[:200]:
         if u == exclude:
             continue
-        if any(r["hit"] for r in recommend(b, u, "SASRec", 3)):
-            return int(u)
+        for s in strats:
+            if any(r["hit"] for r in recommend(b, u, s, 3)):
+                return int(u)
     return int(next(iter(b.gt)))
 
 

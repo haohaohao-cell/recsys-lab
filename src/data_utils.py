@@ -14,7 +14,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .config import DATA_PROC, DATA_RAW, DEFAULT_DATASET, MIN_RATING, WATCH_RATIO_THRESHOLD
+from .config import DATA_PROC, DATA_RAW, DEFAULT_DATASET, DEMO_DIR, MIN_RATING, WATCH_RATIO_THRESHOLD
 
 
 # ---------------------------------------------------------------- MovieLens
@@ -59,12 +59,39 @@ def _read_matrix(path: Path, threshold: float) -> pd.DataFrame:
     ).reset_index(drop=True)
 
 
+# ---------------------------------------------------------------- 精简数据包
+def _demo(name: str) -> pd.DataFrame | None:
+    """assets/demo 下的精简数据；没有就返回 None。"""
+    p = Path(DEMO_DIR) / f"{name}.parquet"
+    return pd.read_parquet(p) if p.exists() else None
+
+
+def _has_raw(raw_dir: Path) -> bool:
+    try:
+        _kuairec_dir(raw_dir)
+        return True
+    except FileNotFoundError:
+        return False
+
+
 def load_kuairec(
     raw_dir: Path = DATA_RAW,
     threshold: float = WATCH_RATIO_THRESHOLD,
     use_cache: bool = True,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """大矩阵（常规有偏曝光）-> 正反馈交互表 + 视频元数据。"""
+    """大矩阵（常规有偏曝光）-> 正反馈交互表 + 视频元数据。
+
+    没有原始数据时（例如云端部署）自动回退到 assets/demo 精简包。
+    """
+    if not _has_raw(raw_dir):
+        demo = _demo("interactions")
+        if demo is None:
+            raise FileNotFoundError(
+                f"未找到 KuaiRec 原始数据（{Path(raw_dir) / 'kuairec'}），也没有 assets/demo 精简包。\n"
+                "请先运行：python -m scripts.download_kuairec"
+            )
+        return demo, load_kuairec_items(raw_dir)
+
     cache = Path(DATA_PROC) / f"kuairec_big_pos_{threshold}.parquet"
     if use_cache and cache.exists():
         inter = pd.read_parquet(cache)
@@ -82,6 +109,12 @@ def load_kuairec_dense(
     use_cache: bool = True,
 ) -> pd.DataFrame:
     """小矩阵（99.6% 全曝光）-> 用于「无偏评估」的真值反馈表。"""
+    if not _has_raw(raw_dir):
+        demo = _demo("dense")
+        if demo is not None:
+            return demo
+        raise FileNotFoundError("缺少稠密矩阵数据，请运行 python -m scripts.download_kuairec")
+
     cache = Path(DATA_PROC) / f"kuairec_small_pos_{threshold}.parquet"
     if use_cache and cache.exists():
         return pd.read_parquet(cache)
@@ -127,6 +160,12 @@ def load_kuairec_exposure(
 
 def load_kuairec_items(raw_dir: Path = DATA_RAW) -> pd.DataFrame:
     """视频元数据：caption（文案）+ 三级类目，合并成一个可用于文本编码的 title。"""
+    if not _has_raw(raw_dir):
+        demo = _demo("items")
+        if demo is not None:
+            return demo
+        raise FileNotFoundError("缺少视频元数据，请运行 python -m scripts.download_kuairec")
+
     cat = pd.read_csv(_kuairec_dir(raw_dir) / "kuairec_caption_category.csv")
     # 原始文件里有少量 video_id 缺失的脏行，先剔除
     vid = pd.to_numeric(cat["video_id"], errors="coerce")

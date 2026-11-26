@@ -128,8 +128,12 @@ def build_bundle() -> Bundle:
         hist_all = pd.concat([split.train[["u", "i", "timestamp"]], split.val[["u", "i", "timestamp"]]])
         seq.set_history(hist_all, split.n_users, split.n_items)
         models["SASRec"] = seq
+    except ImportError:
+        print("[跳过] SASRec：未安装 torch（云端部署属正常现象，其余策略照常）")
+    except FileNotFoundError:
+        print("[跳过] SASRec：缺少 results/sasrec.pt，可运行 python -m scripts.train_sasrec 生成")
     except Exception as e:  # pragma: no cover
-        print(f"SASRec 加载失败：{e}")
+        print(f"[跳过] SASRec 加载失败：{e}")
 
     return Bundle(
         split=split, title=title, genres=genres, models=models, pop=pop,

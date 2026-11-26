@@ -131,12 +131,20 @@ pip install torch --index-url https://download.pytorch.org/whl/cu126   # 按显�
 ## 快速开始
 
 ```bash
-python -m scripts.download_kuairec    # 下载 KuaiRec（约 412 MB，支持断点续传）
-python -m scripts.train_sasrec        # 训练 SASRec（GPU 约 80 秒）
+pip install -r requirements.txt       # 不含 torch，云端同款依赖
 streamlit run app/dashboard.py        # 打开看板 http://localhost:8501
 ```
 
-**`results/` 里已经放好了预计算的指标和模型权重，所以看板开箱即用**，不必重跑实验。
+仓库里已经带了 **10.1 MB 的精简数据包**（`assets/demo/`）和 **预计算好的实验结果**（`results/`），
+所以**克隆下来直接就能跑**——不用下载 412 MB 原始数据，也不用重训模型。
+
+想跑 SASRec 或从零复现全部数字：
+
+```bash
+pip install -r requirements-torch.txt  # torch，仅 SASRec 需要
+python -m scripts.download_kuairec     # 原始数据（约 412 MB，支持断点续传）
+python -m scripts.train_sasrec         # GPU 约 80 秒
+```
 想复现全部数字，按下面的顺序跑：
 
 ```bash
@@ -347,6 +355,13 @@ SASRec 用交叉熵训练，天然把分布压尖；ItemCF 对历史求和，天
 
 > 对工程的含义：把「差一点」当成「够不到」，会白费力气换模型；
 > 把「够不到」当成「差一点」，则会无休止调排序参数。
+
+## 在线部署
+
+精简数据包 + 无 torch 依赖，使这个看板可以直接部署到 Streamlit Community Cloud（免费额度足够）。
+步骤见 [DEPLOY.md](DEPLOY.md)：创建一个公开的 `.streamlit.app` 链接，任何人点开就能看。
+
+> 云端会禁用 SASRec（省内存），其余四个策略与全部图表照常工作。
 
 ---
 

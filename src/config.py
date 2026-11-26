@@ -13,6 +13,11 @@ DATA_RAW = DATA_ROOT / "raw"
 DATA_PROC = DATA_ROOT / "processed"
 RESULTS = ROOT / "results"
 
+# 精简数据包：从原始数据导出的小体积 parquet，随仓库一起提交。
+# 云端部署时没有 412MB 原始数据，直接读这里就能把看板跑起来。
+ASSETS = ROOT / "assets"
+DEMO_DIR = ASSETS / "demo"
+
 DEFAULT_DATASET = "kuairec"
 
 # ---------------- 数据协议 ----------------
