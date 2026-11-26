@@ -102,12 +102,13 @@ streamlit run app/dashboard.py --server.port 8501
 | 规模 | 12,530,806 条曝光 | 4,676,570 条曝光 |
 | 用户 × 视频 | 7,176 × 10,728 | 1,411 × 3,327 |
 | 覆盖率 | 16.28% | **99.62%** |
-| 用途 | 训练与主评测 | **无偏评估**（待做） |
+| 用途 | 训练与主评测 | **无偏评估** |
 
 正反馈定义：`watch_ratio = 播放时长 / 视频时长 > 2`（看了两遍以上），这是 KuaiRec 论文的「有效观看」口径。过滤后剩 **846,253 条**交互 / 7,175 用户 / 10,611 视频，稀疏度 1.11%，人均 117.9 条。
 
 > 小矩阵是 KuaiRec 独有的宝藏：它几乎记录了每个用户对每个视频的真实反馈，
-> 因此能区分「用户不喜欢」和「根本没推给他」——这是普通数据集做不到的（见下一步）。
+> 而且这些视频**刻意避开了用户的常规信息流**——所以它本质是一次随机曝光实验，
+> 能回答「如果推给他，他会不会看」，这是普通数据集做不到的（见发现四）。
 
 ---
 
@@ -115,21 +116,40 @@ streamlit run app/dashboard.py --server.port 8501
 
 | 项 | 值 |
 |---|---|
-| 虚拟环境 | `D:\venv\reclab`（在 D 盘，不占系统盘） |
-| 数据目录 | `D:\reclab-data`（可用 `RECLAB_DATA` 环境变量覆盖） |
-| Python / torch | 3.12 / 2.14.1+cu126 |
+| Python | 3.12 |
+| PyTorch | 2.14.1+cu126（纯 CPU 也能跑，SASRec 会慢 10 倍左右） |
 | GPU | RTX 4060 Laptop 8GB（sm_89） |
+| 数据目录 | `data/`，可用环境变量 `RECLAB_DATA` 指向别处 |
 
 ```bash
-D:\venv\reclab\Scripts\activate.bat
+python -m venv .venv
+.venv\Scripts\activate                                              # Windows
+pip install -r requirements.txt
+pip install torch --index-url https://download.pytorch.org/whl/cu126   # 按显卡驱动选版本
+```
 
-python -m scripts.download_data      # MovieLens（备用数据集）
-python -m scripts.explore_kuairec    # KuaiRec 规模统计
-python -m src.run_experiments        # 经典基线
+## 快速开始
+
+```bash
+python -m scripts.download_kuairec    # 下载 KuaiRec（约 412 MB，支持断点续传）
+python -m scripts.train_sasrec        # 训练 SASRec（GPU 约 80 秒）
+streamlit run app/dashboard.py        # 打开看板 http://localhost:8501
+```
+
+**`results/` 里已经放好了预计算的指标和模型权重，所以看板开箱即用**，不必重跑实验。
+想复现全部数字，按下面的顺序跑：
+
+```bash
+python -m scripts.test_sanity        # 评估链路自检（先跑这个）
+python -m src.run_experiments        # Popular / ItemCF
 python -m scripts.train_bpr          # BPR-MF
-python -m scripts.train_sasrec       # SASRec（GPU，约 80 秒）
+python -m scripts.train_sasrec       # SASRec
+python -m scripts.semantic_recall --source category   # 语义召回
+python -m scripts.protocol_compare   # 协议敏感性
+python -m scripts.exposure_bias      # 曝光偏差
+python -m scripts.dense_eval         # 稠密多正样本
+python -m scripts.failure_analysis   # 错例归因
 python -m scripts.report             # 汇总 -> results/report.md
-python -m scripts.show_demo          # 看一个真实用户的推荐
 ```
 
 ---

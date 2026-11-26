@@ -748,8 +748,14 @@ def _gap_hours(b) -> np.ndarray:
 
 # ---------------------------------------------------------------- 入口
 def main() -> None:
-    with st.spinner("首次加载模型（约 30 秒，之后 5 秒）..."):
-        b = get_bundle()
+    try:
+        with st.spinner("首次加载模型（约 30 秒，之后 5 秒）..."):
+            b = get_bundle()
+    except FileNotFoundError:
+        st.error("**未找到 KuaiRec 数据**。首次运行需要先下载（约 412 MB，支持断点续传）。")
+        st.code("python -m scripts.download_kuairec", language="bash")
+        st.caption("下载完成后重新运行 `streamlit run app/dashboard.py` 即可。")
+        st.stop()
 
     pages = ["概览", "用户视角", "错例分析", "诊断", "数据体检"]
     slug = {"overview": "概览", "user": "用户视角", "fail": "错例分析",
