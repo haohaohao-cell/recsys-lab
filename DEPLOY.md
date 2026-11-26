@@ -1,5 +1,7 @@
 # 部署到 Streamlit Community Cloud
 
+**当前线上地址**：https://recsys-lab-m7bhrig7cvvqpchd8rwqrg.streamlit.app/
+
 目标：拿到一个公开链接（形如 `https://xxx.streamlit.app`），任何人点开就能看，不用装任何东西。
 
 ## 已经准备好的东西
