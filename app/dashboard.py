@@ -375,7 +375,8 @@ def page_user(b) -> None:
         st.markdown(gt_panel(b, u, scores), unsafe_allow_html=True)
 
     with right:
-        compare = st.toggle("并排对比 · SASRec vs ItemCF", value=False)
+        pair = [s for s in ("SASRec", "ItemCF") if s in strats] or strats[:2]
+        compare = st.toggle(f"并排对比 · {pair[0]} vs {pair[1]}", value=False)
 
         if not compare:
             strat = st.segmented_control(
@@ -406,7 +407,6 @@ def page_user(b) -> None:
         else:
             k = 5
             gt = b.gt.get(u)
-            pair = [s for s in ("SASRec", "ItemCF") if s in strats] or strats[:2]
             c1, c2 = st.columns(2, gap="medium")
             for col, strat in zip((c1, c2), pair):
                 with col:
