@@ -1,0 +1,12 @@
+{
+  "n_users": 1411,
+  "threshold": 2.0,
+  "rate_algo": 0.08503582171222417,
+  "rate_random": 0.0464562312590093,
+  "lift": 1.8304502842281913,
+  "share_users_algo_better": 0.8476257973068746,
+  "wilcoxon_p": 3.057654561218978e-157,
+  "mean_n_big": 356.9922041105599,
+  "mean_n_small": 3314.3656980864635,
+  "mean_liked_unseen": 153.9156626506024
+}

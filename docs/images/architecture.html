@@ -1,0 +1,135 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1400px; height: 715px; padding: 40px 54px;
+    font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+    background: #ffffff; color: #0f172a; overflow: hidden;
+  }
+  .head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 22px; }
+  .head h1 { font-size: 30px; letter-spacing: -.02em; }
+  .head .sub { font-size: 13px; color: #94a3b8; margin-top: 6px; letter-spacing: .06em; }
+  .head .right { font-size: 12px; color: #94a3b8; text-align: right; line-height: 1.9; }
+
+  .row { display: flex; align-items: stretch; gap: 16px; }
+  .label {
+    width: 88px; flex: none; display: flex; align-items: center; justify-content: flex-end;
+    font-size: 12.5px; font-weight: 700; color: #64748b; letter-spacing: .04em;
+  }
+  .boxes { flex: 1; display: flex; gap: 10px; }
+  .box {
+    flex: 1; border-radius: 11px; padding: 12px 15px; border: 1px solid;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .box .t { font-size: 13.5px; font-weight: 700; }
+  .box .d { font-size: 11.5px; margin-top: 4px; line-height: 1.55; opacity: .82; }
+
+  .data   { background: #f8fafc; border-color: #e2e8f0; color: #475569; }
+  .prep   { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
+  .recall { background: #eef2ff; border-color: #c7d2fe; color: #3730a3; }
+  .eval   { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+  .diag   { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+  .show   { background: #fdf2f8; border-color: #fbcfe8; color: #9d174d; }
+
+  .arrow { height: 26px; display: flex; align-items: center; justify-content: center; }
+  .arrow span { color: #94a3b8; font-size: 11px; line-height: 1; }
+
+  .foot { margin-top: 20px; padding-top: 14px; border-top: 1px solid #f1f5f9;
+          display: flex; gap: 28px; font-size: 11.5px; color: #94a3b8; }
+  .foot b { color: #475569; font-weight: 600; margin-right: 5px; }
+</style>
+</head>
+<body>
+  <div class="head">
+    <div>
+      <h1>RecLab 系统架构</h1>
+      <div class="sub">KUAI REC · 离线实验 · 严格时序评测</div>
+    </div>
+    <div class="right">
+      7,154 用户 · 10,610 视频 · 846,183 条有效观看<br>
+      五个召回策略 · 七个可复现结论
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="label">数据</div>
+    <div class="boxes">
+      <div class="box data"><div class="t">大矩阵 · 常规曝光</div>
+        <div class="d">1,253 万条曝光，算法推荐产生，有偏</div></div>
+      <div class="box data"><div class="t">小矩阵 · 全曝光</div>
+        <div class="d">467 万条，覆盖 99.62%，用于无偏评估</div></div>
+      <div class="box data"><div class="t">视频元数据</div>
+        <div class="d">文案、三级类目、用户画像</div></div>
+    </div>
+  </div>
+
+  <div class="arrow"><span>▼</span></div>
+
+  <div class="row">
+    <div class="label">预处理</div>
+    <div class="boxes">
+      <div class="box prep"><div class="t">正反馈定义</div><div class="d">watch_ratio &gt; 2（看两遍以上）</div></div>
+      <div class="box prep"><div class="t">时序切分</div><div class="d">leave-last-out，训练集不含未来</div></div>
+      <div class="box prep"><div class="t">文本清洗</div><div class="d">去话题标签 / UNKNOWN，63.6% 受影响</div></div>
+    </div>
+  </div>
+
+  <div class="arrow"><span>▼</span></div>
+
+  <div class="row">
+    <div class="label">召回</div>
+    <div class="boxes">
+      <div class="box recall"><div class="t">Popular</div><div class="d">热度基线</div></div>
+      <div class="box recall"><div class="t">ItemCF</div><div class="d">物品共现</div></div>
+      <div class="box recall"><div class="t">BPR-MF</div><div class="d">隐语义</div></div>
+      <div class="box recall"><div class="t">SASRec</div><div class="d">自注意力序列</div></div>
+      <div class="box recall"><div class="t">语义召回</div><div class="d">类目内容向量</div></div>
+    </div>
+  </div>
+
+  <div class="arrow"><span>▼</span></div>
+
+  <div class="row">
+    <div class="label">评估</div>
+    <div class="boxes">
+      <div class="box eval"><div class="t">全量排序</div><div class="d">不做负采样</div></div>
+      <div class="box eval"><div class="t">稳定 top-k</div><div class="d">换环境结果不变</div></div>
+      <div class="box eval"><div class="t">分组归因</div><div class="d">活跃度 × 流行度</div></div>
+      <div class="box eval"><div class="t">多正样本 Recall</div><div class="d">154 真值/人</div></div>
+      <div class="box eval"><div class="t">四重自检</div><div class="d">作弊模型 HR=1.0</div></div>
+    </div>
+  </div>
+
+  <div class="arrow"><span>▼</span></div>
+
+  <div class="row">
+    <div class="label">诊断</div>
+    <div class="boxes">
+      <div class="box diag"><div class="t">协议敏感性</div><div class="d">冠军反转 2.2–5.0×</div></div>
+      <div class="box diag"><div class="t">任务对比</div><div class="d">next-item vs 覆盖</div></div>
+      <div class="box diag"><div class="t">长尾分桶</div><div class="d">只有内容召回非零</div></div>
+      <div class="box diag"><div class="t">曝光偏差</div><div class="d">算法 vs 随机 1.83×</div></div>
+      <div class="box diag"><div class="t">错例归因</div><div class="d">差一点 vs 够不到</div></div>
+    </div>
+  </div>
+
+  <div class="arrow"><span>▼</span></div>
+
+  <div class="row">
+    <div class="label">展示</div>
+    <div class="boxes">
+      <div class="box show"><div class="t">Streamlit 看板</div>
+        <div class="d">概览 / 用户视角 / 错例分析 / 诊断 / 数据体检</div></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div><b>可复现</b>12 个脚本，一条命令出全部结论</div>
+    <div><b>可验证</b>作弊模型 1.0000 · 手算对照 · 随机下界 0.0006</div>
+    <div><b>可解释</b>每条推荐可回溯到历史物品</div>
+  </div>
+</body>
+</html>
